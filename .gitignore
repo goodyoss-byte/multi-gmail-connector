@@ -1,0 +1,30 @@
+# Secrets and credentials — never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+client_secret*.json
+credentials*.json
+service-account*.json
+*.token
+/secrets/
+# Local connector state if someone points CMEC_CONFIG_DIR inside the repo
+.cmec/
+secrets.enc.json
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+
+# Local tooling
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/

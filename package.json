@@ -1,0 +1,70 @@
+{
+  "name": "multi-gmail-connector",
+  "version": "0.2.0",
+  "description": "Multi-Gmail Connector for Claude: a free, local-first, read-only MCP server that lets Claude search several Gmail accounts at once. Tokens stay in your OS keychain.",
+  "license": "AGPL-3.0-only",
+  "author": "goodyoss-byte",
+  "type": "module",
+  "homepage": "https://github.com/goodyoss-byte/multi-gmail-connector#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/goodyoss-byte/multi-gmail-connector.git"
+  },
+  "bugs": {
+    "url": "https://github.com/goodyoss-byte/multi-gmail-connector/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "cmec": "dist/cli.js",
+    "multi-gmail-connector": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run typecheck && npm test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "setup": "node dist/cli.js setup",
+    "install-into-claude": "node dist/cli.js install",
+    "doctor": "node dist/cli.js doctor",
+    "fix": "node dist/cli.js fix",
+    "claude-config": "node dist/cli.js claude-config",
+    "serve": "node dist/cli.js serve",
+    "cmec": "node dist/cli.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "gmail",
+    "email",
+    "multi-account",
+    "local-first"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.1.0",
+    "@napi-rs/keyring": "^2.1.0",
+    "html-to-text": "^10.0.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.1.0",
+    "@types/html-to-text": "^9.0.4",
+    "@types/node": "^22.20.4",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.2"
+  }
+}

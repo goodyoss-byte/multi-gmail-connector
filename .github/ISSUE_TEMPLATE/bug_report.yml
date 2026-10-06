@@ -1,0 +1,47 @@
+name: Bug report
+description: Something doesn't work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Security issue?** Don't file it here; see SECURITY.md.
+        **Never paste tokens, client secrets, OAuth codes, email content or other personal data.** Replace addresses with `a@example.com`.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Connector version / commit
+  - type: dropdown
+    id: client
+    attributes:
+      label: Claude client
+      options: [Claude Desktop, Claude Code, Other]
+  - type: input
+    id: env
+    attributes:
+      label: OS and Node.js version
+      placeholder: macOS 15, Node 22.x
+  - type: textarea
+    id: doctor
+    attributes:
+      label: "`npm run doctor` output (check it for personal data first)"
+      render: text
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I removed tokens, secrets, email content and personal addresses from this report.
+          required: true

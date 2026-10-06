@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest an improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+  - type: textarea
+    id: safety
+    attributes:
+      label: Privacy / security considerations
+      description: Does this add write access, new network destinations, stored data or new dependencies?
