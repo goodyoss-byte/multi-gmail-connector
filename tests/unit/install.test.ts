@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { claudeDesktopConfigPath, installIntoClaudeDesktop, mergeServerEntry, serverEntry } from '../../src/cli/claude-install.js';
+import { claudeDesktopConfigPath, installIntoClaudeCode, installIntoClaudeDesktop, mergeServerEntry, serverEntry } from '../../src/cli/claude-install.js';
 import { migrateLegacyConfig } from '../../src/config/migrate.js';
 import { configFile } from '../../src/config/paths.js';
 
@@ -77,6 +77,46 @@ describe('Claude config writer', () => {
     await writeFile(path, '{ this is not json');
     await expect(installIntoClaudeDesktop({ path, entry: ENTRY })).rejects.toThrow(/not valid JSON/);
     expect(await readFile(path, 'utf8')).toBe('{ this is not json'); // untouched
+  });
+});
+
+describe('Claude Code registration', () => {
+  it('writes the entry verbatim, so a path with spaces survives', async () => {
+    const path = join(dir, '.claude.json');
+    const spaced = { command: 'C:\\Program Files\\nodejs\\node.exe', args: ['C:\\Program Files\\app\\cli.js', 'serve'] };
+    await writeFile(path, JSON.stringify({ mcpServers: { other: { command: 'keep', args: [] } }, projects: { a: 1 } }));
+
+    const res = await installIntoClaudeCode({ entry: spaced, path });
+    expect(res).toMatchObject({ ran: true, ok: true, detail: 'added' });
+
+    const after = JSON.parse(await readFile(path, 'utf8'));
+    expect(after.mcpServers.email).toEqual({ type: 'stdio', ...spaced, env: {} });
+    expect(after.mcpServers.email.command).toBe('C:\\Program Files\\nodejs\\node.exe'); // not split at the space
+    expect(after.mcpServers.other).toEqual({ command: 'keep', args: [] });
+    expect(after.projects).toEqual({ a: 1 }); // unrelated state untouched
+    expect(JSON.parse(await readFile(`${path}.backup`, 'utf8')).mcpServers.email).toBeUndefined();
+  });
+
+  it('replaces an entry that is already there instead of failing', async () => {
+    const path = join(dir, '.claude.json');
+    await writeFile(path, JSON.stringify({ mcpServers: { email: { type: 'stdio', command: 'old', args: [], env: {} } } }));
+    const res = await installIntoClaudeCode({ entry: ENTRY, path });
+    expect(res).toMatchObject({ ok: true, detail: 'updated' });
+    expect(JSON.parse(await readFile(path, 'utf8')).mcpServers.email.command).toBe(ENTRY.command);
+
+    const again = await installIntoClaudeCode({ entry: ENTRY, path });
+    expect(again).toMatchObject({ ok: true, detail: 'already registered' });
+  });
+
+  it('skips quietly when Claude Code is not installed, and never rewrites a broken file', async () => {
+    const missing = await installIntoClaudeCode({ entry: ENTRY, path: join(dir, 'absent.json') });
+    expect(missing).toMatchObject({ ran: false, ok: false });
+
+    const broken = join(dir, 'broken.json');
+    await writeFile(broken, '{ not json');
+    const res = await installIntoClaudeCode({ entry: ENTRY, path: broken });
+    expect(res).toMatchObject({ ran: true, ok: false });
+    expect(await readFile(broken, 'utf8')).toBe('{ not json');
   });
 });
 

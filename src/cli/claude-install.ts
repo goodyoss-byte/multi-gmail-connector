@@ -3,7 +3,6 @@
 import { promises as fs } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 // Writes the MCP server entry into Claude's own configuration so nobody has to
@@ -14,6 +13,8 @@ import { fileURLToPath } from 'node:url';
 export const SERVER_KEY = 'email';
 
 export interface ServerEntry {
+  /** Claude Code records the transport; Claude Desktop leaves it out. */
+  type?: 'stdio';
   command: string;
   args: string[];
   env?: Record<string, string>;
@@ -101,19 +102,48 @@ export interface ClaudeCodeResult {
   ran: boolean;
   ok: boolean;
   detail: string;
-  command: string;
+  path: string;
 }
 
-/** Registers the server with Claude Code, if its CLI is installed. */
-export function installIntoClaudeCode(entry: ServerEntry = serverEntry(), key = SERVER_KEY): ClaudeCodeResult {
-  const args = ['mcp', 'add', '--scope', 'user', key, '--', entry.command, ...entry.args];
-  const printable = `claude ${args.join(' ')}`;
-  const probe = spawnSync('claude', ['--version'], { stdio: 'ignore', shell: process.platform === 'win32' });
-  if (probe.error || probe.status !== 0) {
-    return { ran: false, ok: false, detail: 'The Claude Code CLI was not found on PATH; skipped.', command: printable };
+/** Claude Code keeps its user-scope MCP servers here. */
+export function claudeCodeConfigPath(): string {
+  return join(homedir(), '.claude.json');
+}
+
+/**
+ * Registers the server with Claude Code by editing its config directly.
+ *
+ * An earlier version shelled out to `claude mcp add`. On Windows the CLI is a
+ * .cmd shim, which Node can only run through a shell, and a shell does not
+ * escape the arguments: the default Node path, which contains a space, was
+ * split at that space and Claude Code was left with command "C:\Program".
+ * Writing the JSON ourselves has no quoting to get wrong, needs no CLI on PATH,
+ * and overwrites our own key instead of failing with "already exists".
+ */
+export async function installIntoClaudeCode(opts: { entry?: ServerEntry; key?: string; path?: string } = {}): Promise<ClaudeCodeResult> {
+  const { entry = serverEntry(), key = SERVER_KEY } = opts;
+  const path = opts.path ?? claudeCodeConfigPath();
+  let raw: string;
+  try {
+    raw = await fs.readFile(path, 'utf8');
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      return { ran: false, ok: false, detail: 'Claude Code is not installed here (no ~/.claude.json); skipped.', path };
+    }
+    return { ran: true, ok: false, detail: (err as Error).message, path };
   }
-  const res = spawnSync('claude', args, { encoding: 'utf8', shell: process.platform === 'win32' });
-  if (res.error) return { ran: true, ok: false, detail: res.error.message, command: printable };
-  const output = `${res.stdout ?? ''}${res.stderr ?? ''}`.trim().split('\n').slice(-2).join(' ');
-  return { ran: true, ok: res.status === 0, detail: output || (res.status === 0 ? 'added' : `exit code ${res.status}`), command: printable };
+  let existing: unknown;
+  try {
+    existing = JSON.parse(raw);
+  } catch {
+    return { ran: true, ok: false, detail: `${path} is not valid JSON; left untouched.`, path };
+  }
+  // Claude Code records the transport explicitly; Claude Desktop infers it.
+  const { outcome, config } = mergeServerEntry(existing, { type: 'stdio', ...entry, env: entry.env ?? {} }, key);
+  if (outcome === 'unchanged') return { ran: true, ok: true, detail: 'already registered', path };
+  await fs.writeFile(`${path}.backup`, raw, { mode: 0o600 });
+  const tmp = `${path}.${process.pid}.tmp`;
+  await fs.writeFile(tmp, JSON.stringify(config, null, 2) + '\n', { mode: 0o600 });
+  await fs.rename(tmp, path);
+  return { ran: true, ok: true, detail: outcome === 'added' ? 'added' : 'updated', path };
 }

@@ -21,7 +21,7 @@ import {
 import { getAttachment, getEmail, getThread, listEmailAccounts, searchEmails } from './tools.js';
 
 export const SERVER_NAME = 'multi-gmail-connector';
-export const SERVER_VERSION = '0.2.0';
+export const SERVER_VERSION = '0.2.1';
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true } as const;
 

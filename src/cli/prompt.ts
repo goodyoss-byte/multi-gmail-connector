@@ -4,6 +4,9 @@ import { createInterface } from 'node:readline/promises';
 import { spawn } from 'node:child_process';
 
 export async function ask(question: string, fallback = ''): Promise<string> {
+  // Nobody is there to answer when stdin is a pipe or closed (a script, CI, or
+  // a tool running the CLI): take the default instead of waiting forever.
+  if (!process.stdin.isTTY) return fallback;
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   try {
     const answer = (await rl.question(question)).trim();

@@ -1,6 +1,6 @@
 {
   "name": "multi-gmail-connector",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Multi-Gmail Connector for Claude: a free, local-first, read-only MCP server that lets Claude search several Gmail accounts at once. Tokens stay in your OS keychain.",
   "license": "AGPL-3.0-only",
   "author": "goodyoss-byte",

@@ -26,7 +26,7 @@ Usage: cmec <command>        (from a cloned checkout: npm run cmec -- <command>)
   add [--label NAME]         Connect another Gmail account
   list                       Show connected accounts
   fix                        Check everything and renew any sign-in that has expired
-  install                    Add (or update) this server in Claude Desktop and Claude Code
+  install [--yes]            Add (or update) this server in Claude Desktop and Claude Code
   remove <account>           Revoke access at Google and delete the stored token
   uninstall                  Revoke every account and delete all local data
 
@@ -98,7 +98,7 @@ async function main(argv: string[]): Promise<number> {
     case 'set-client':
       return setClient(rt, rest[0]);
     case 'install':
-      return install(rt, { ask: true });
+      return install(rt, { ask: !rest.some((a) => a === '--yes' || a === '-y') });
     case 'claude-config':
       printClaudeConfig();
       return 0;
@@ -378,10 +378,10 @@ async function install(rt: Runtime, opts: { ask: boolean }): Promise<number> {
     out('');
     printClaudeConfig();
   }
-  const code = installIntoClaudeCode(entry);
-  if (code.ran && code.ok) out('✔ Registered with Claude Code (user scope)');
-  else if (code.ran) out(`✘ Claude Code: ${code.detail}\n  Run it yourself: ${code.command}`);
-  else out(`• Claude Code not installed; skipping. If you add it later, run:\n  ${code.command}`);
+  const code = await installIntoClaudeCode({ entry });
+  if (code.ran && code.ok) out(`✔ Claude Code: ${code.detail} (${code.path})`);
+  else if (code.ran) out(`✘ Claude Code: ${code.detail}`);
+  else out(`• ${code.detail}`);
 
   const list = await rt.registry.list();
   if (list.length === 0) out('\nNo accounts are connected yet. Run `cmec add` before asking Claude about your email.');

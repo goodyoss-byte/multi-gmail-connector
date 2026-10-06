@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] — 2026-10-06
+
+### Fixed
+- **`cmec install` registered a broken server with Claude Code on Windows.** It
+  shelled out to `claude mcp add`, and because the CLI is a `.cmd` shim that
+  Node can only run through a shell, the arguments went unescaped: the default
+  Node path (`C:\Program Files\nodejs\node.exe`) was split at the space, leaving
+  Claude Code with `command: "C:\Program"`. Registration now edits
+  `~/.claude.json` directly — no shell, nothing to escape, no CLI needed on
+  PATH — keeping every other key and backing the file up first. Re-running
+  `cmec install` repairs an entry written by 0.2.0.
+- **Prompts no longer hang when nothing can answer them.** `cmec install` run
+  from a script or another tool stopped at its confirmation prompt and exited
+  without doing anything. Questions now take their default when stdin is not a
+  terminal, and `cmec install --yes` skips the confirmation outright.
+
 ## [0.2.0] — 2026-10-06
 
 First public release.
