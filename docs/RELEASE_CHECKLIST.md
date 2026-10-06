@@ -52,8 +52,20 @@ git checkout public-release
 git checkout main -- .          # take main's tree, not its history
 git add -A && git commit        # one commit per public release
 git push public public-release:main
-git tag -a vX.Y.Z -m "…" && git push public vX.Y.Z
+```
+Then tag **the public commit by name** and push that tag:
+```bash
+git tag -a vX.Y.Z -m "…" public-release     # the branch name is not optional
+git push public refs/tags/vX.Y.Z
 git checkout main
+```
+`git tag` with no target tags whatever HEAD happens to be. On 6 Oct 2026 that
+tagged `main` instead, and pushing the tag carried main's entire private
+history into the public repository; the fix was deleting and recreating it.
+Safer still: push the branch first, then create the tag through the API against
+the SHA the public repository now has:
+```bash
+gh api -X POST repos/<owner>/<repo>/git/refs -f ref=refs/tags/vX.Y.Z -f sha=<sha of public main>
 ```
 Then `npm publish` from `main` (`prepublishOnly` re-runs typecheck and tests
 first, and `prepare` builds the package).
