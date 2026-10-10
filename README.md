@@ -1,6 +1,6 @@
 # Multi-Gmail Connector for Claude
 
-[![M8ven Score](https://m8ven.ai/badge/mcp/goodyoss-byte-multi-gmail-connector-1jfvzh?v=f55c02179b342999e545d3f7af49c61c)](https://m8ven.ai/mcp/goodyoss-byte-multi-gmail-connector-1jfvzh?s=readme)
+[![M8ven Score](https://m8ven.ai/badge/mcp/goodyoss-byte-multi-gmail-connector-1jfvzh?v=2377928b78ff9252616724414b1ff56a)](https://m8ven.ai/mcp/goodyoss-byte-multi-gmail-connector-1jfvzh?s=readme)
 
 **Free · Local-first · Open source · Read-only**
 
