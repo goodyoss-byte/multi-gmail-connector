@@ -1,5 +1,7 @@
 # Multi-Gmail Connector for Claude
 
+[![M8ven Score](https://m8ven.ai/badge/mcp/goodyoss-byte-multi-gmail-connector-1jfvzh?v=f55c02179b342999e545d3f7af49c61c)](https://m8ven.ai/mcp/goodyoss-byte-multi-gmail-connector-1jfvzh?s=readme)
+
 **Free · Local-first · Open source · Read-only**
 
 Let Claude search and read **several Gmail accounts at once** (personal, business, accounting…) from Claude Desktop or Claude Code. Every result tells you which account it came from.
